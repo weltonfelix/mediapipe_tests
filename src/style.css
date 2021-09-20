@@ -1,0 +1,78 @@
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+*:focus {
+  outline: 0;
+}
+
+.videoPlaybackCanvas,
+.handCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.videoPlaybackCanvas {
+  z-index: -1;
+}
+
+.handCanvas {
+  z-index: 2;
+}
+
+div {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#control {
+  gap: 16px;
+}
+
+#counter,
+.plusButton,
+.minusButton, .controlCam {
+  font-family: "Roboto", Arial, sans-serif;
+  text-align: center;
+  color: #fff;
+  font-size: 3em;
+}
+
+.bg {
+  background-color: rgba(0, 0, 0, 0.5);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100px;
+  height: 100px;
+
+  border-radius: 100%;
+  padding: 20px;
+}
+
+.controlCam {
+  position: absolute;
+  top: 100px;
+  right: 100px;
+
+  font-size: 1.5rem;
+  background-color: rgba(71, 48, 48, 0.5);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100px;
+  height: 100px;
+
+  border-radius: 100%;
+  padding: 20px;
+}
