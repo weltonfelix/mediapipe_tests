@@ -9,6 +9,13 @@ import { displayResults } from "./utils/hand_recognition";
 
 import "./style.css";
 
+const HANDS_VERSION = "0.3.1630010197";
+const HANDS_BASE_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${HANDS_VERSION}`;
+const resolveHandsFile = (file: string) => {
+  const normalizedFile = file.split("/").pop() ?? file;
+  return `${HANDS_BASE_URL}/${normalizedFile}`;
+};
+
 function App() {
   var numberValue = 0;
   const [number, setNumber] = useState(0);
@@ -50,9 +57,7 @@ function App() {
   // Starts hands recognition
   useEffect(() => {
     const hands = new Hands({
-      locateFile: (file: string) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-      },
+      locateFile: resolveHandsFile,
     });
 
     hands.setOptions({
