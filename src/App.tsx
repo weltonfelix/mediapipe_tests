@@ -64,19 +64,43 @@ function App() {
 
     hands.onResults(onResults);
 
-    if (webcamRef.current?.video) {
-      const image = webcamRef.current.video;
+    let mediapipeCamera: Cam.Camera | null = null;
+    let videoCheckInterval: ReturnType<typeof setInterval> | null = null;
 
-      const mediapipeCamera = new Cam.Camera(image, {
+    const startHandTracking = () => {
+      const image = webcamRef.current?.video;
+      if (!image || image.readyState < 2) {
+        return false;
+      }
+
+      mediapipeCamera = new Cam.Camera(image, {
         onFrame: async () => {
           await hands.send({ image });
         },
-        width: image.width,
-        height: image.height,
+        width: image.videoWidth || image.width,
+        height: image.videoHeight || image.height,
       });
 
       mediapipeCamera.start();
+      return true;
+    };
+
+    if (!startHandTracking()) {
+      videoCheckInterval = setInterval(() => {
+        if (startHandTracking() && videoCheckInterval) {
+          clearInterval(videoCheckInterval);
+          videoCheckInterval = null;
+        }
+      }, 200);
     }
+
+    return () => {
+      if (videoCheckInterval) {
+        clearInterval(videoCheckInterval);
+      }
+      mediapipeCamera?.stop();
+      hands.close();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camStatus]);
   return (
