@@ -2,19 +2,15 @@ import { useRef, useEffect, useState } from "react";
 
 import Webcam from "react-webcam";
 
-import { Hands, Results } from "@mediapipe/hands";
+import { Hands, Results, VERSION } from "@mediapipe/hands";
 import * as Cam from "@mediapipe/camera_utils";
 
 import { displayResults } from "./utils/hand_recognition";
 
 import "./style.css";
 
-const HANDS_VERSION = "0.3.1630010197";
-const HANDS_BASE_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${HANDS_VERSION}`;
-const resolveHandsFile = (file: string) => {
-  const normalizedFile = file.split("/").pop() ?? file;
-  return `${HANDS_BASE_URL}/${normalizedFile}`;
-};
+const HANDS_BASE_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}`;
+const resolveHandsFile = (file: string) => `${HANDS_BASE_URL}/${file}`;
 
 function App() {
   var numberValue = 0;
