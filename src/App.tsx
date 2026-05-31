@@ -66,17 +66,39 @@ function App() {
     hands.onResults(onResults);
 
     let mediapipeCamera: Cam.Camera | null = null;
-    let videoCheckInterval: ReturnType<typeof setInterval> | null = null;
+    let isHandsInitialized = false;
 
-    const startHandTracking = () => {
+    const initializeHands = async () => {
+      try {
+        await hands.initialize();
+        isHandsInitialized = true;
+        return true;
+      } catch (error) {
+        console.error("Failed to initialize Hands:", error);
+        return false;
+      }
+    };
+
+    const startHandTracking = async () => {
       const image = webcamRef.current?.video;
       if (!image || image.readyState < 2) {
         return false;
       }
 
+      if (!isHandsInitialized) {
+        const initialized = await initializeHands();
+        if (!initialized) {
+          return false;
+        }
+      }
+
       mediapipeCamera = new Cam.Camera(image, {
         onFrame: async () => {
-          await hands.send({ image });
+          try {
+            await hands.send({ image });
+          } catch (error) {
+            console.error("Error sending frame to Hands:", error);
+          }
         },
         width: image.videoWidth || image.width,
         height: image.videoHeight || image.height,
@@ -86,19 +108,20 @@ function App() {
       return true;
     };
 
-    if (!startHandTracking()) {
-      videoCheckInterval = setInterval(() => {
-        if (startHandTracking() && videoCheckInterval) {
-          clearInterval(videoCheckInterval);
-          videoCheckInterval = null;
-        }
-      }, 200);
-    }
+    // Start hand tracking
+    startHandTracking().then((started) => {
+      if (!started) {
+        // Retry periodically if initial start failed
+        const videoCheckInterval = setInterval(async () => {
+          const success = await startHandTracking();
+          if (success) {
+            clearInterval(videoCheckInterval);
+          }
+        }, 200);
+      }
+    });
 
     return () => {
-      if (videoCheckInterval) {
-        clearInterval(videoCheckInterval);
-      }
       mediapipeCamera?.stop();
       hands.close();
     };
