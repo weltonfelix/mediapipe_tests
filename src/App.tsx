@@ -66,7 +66,10 @@ function App() {
     hands.onResults(onResults);
 
     let mediapipeCamera: Cam.Camera | null = null;
+    let videoCheckInterval: ReturnType<typeof setInterval> | null = null;
     let isHandsInitialized = false;
+    let retryCount = 0;
+    const MAX_RETRIES = 50; // Max retries over ~10 seconds (50 * 200ms)
 
     const initializeHands = async () => {
       try {
@@ -112,16 +115,30 @@ function App() {
     startHandTracking().then((started) => {
       if (!started) {
         // Retry periodically if initial start failed
-        const videoCheckInterval = setInterval(async () => {
+        videoCheckInterval = setInterval(async () => {
+          retryCount++;
+          if (retryCount >= MAX_RETRIES) {
+            if (videoCheckInterval) {
+              clearInterval(videoCheckInterval);
+              videoCheckInterval = null;
+            }
+            console.warn("Failed to start hand tracking after maximum retries");
+            return;
+          }
           const success = await startHandTracking();
-          if (success) {
+          if (success && videoCheckInterval) {
             clearInterval(videoCheckInterval);
+            videoCheckInterval = null;
           }
         }, 200);
       }
     });
 
     return () => {
+      if (videoCheckInterval) {
+        clearInterval(videoCheckInterval);
+        videoCheckInterval = null;
+      }
       mediapipeCamera?.stop();
       hands.close();
     };
