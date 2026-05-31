@@ -54,7 +54,7 @@ function displayResults(params: DisplayResultsParams): boolean[] {
     drawVideoPlayback(results.image, canvasVideoRef.current);
   }
 
-  // Initialize overlaps array
+  // Initialize overlaps array - will be populated if elements are provided
   let overlaps: boolean[] = [];
   if (elements) {
     overlaps = elements.map(() => false);

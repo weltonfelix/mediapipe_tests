@@ -69,7 +69,7 @@ function App() {
     let videoCheckInterval: ReturnType<typeof setInterval> | null = null;
     let isHandsInitialized = false;
     let retryCount = 0;
-    const MAX_RETRIES = 100; // Max retries over ~20 seconds (100 * 200ms)
+    const MAX_RETRIES = 100; // Max retries: 100 * 200ms = 20 seconds
 
     const initializeHands = async () => {
       try {
