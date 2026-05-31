@@ -113,13 +113,13 @@ function App() {
         </button>
       )}
       <div id="control">
-        <button className="plusButton bg" ref={minusButtonRef}>
+        <button className="minusButton bg" ref={minusButtonRef}>
           -
         </button>
         <div className="bg">
           <h1 id="counter">{number}</h1>
         </div>
-        <button className="minusButton bg" ref={plusButtonRef}>
+        <button className="plusButton bg" ref={plusButtonRef}>
           +
         </button>
       </div>

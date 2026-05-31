@@ -24,7 +24,7 @@ function drawVideoPlayback(image: GpuBuffer, canvas: HTMLCanvasElement | null) {
   canvasCtx.drawImage(image, 0, 0, canvas.width, canvas.height);
 }
 
-function displayResults(params: DisplayResultsParams): boolean[] | void {
+function displayResults(params: DisplayResultsParams): boolean[] {
   const {
     results,
     canvasHandRef,
@@ -54,6 +54,12 @@ function displayResults(params: DisplayResultsParams): boolean[] | void {
     drawVideoPlayback(results.image, canvasVideoRef.current);
   }
 
+  // Initialize overlaps array
+  let overlaps: boolean[] = [];
+  if (elements) {
+    overlaps = elements.map(() => false);
+  }
+
   // Draw the hand if detected
   if (results.multiHandLandmarks.length > 0) {
     const hand = results.multiHandLandmarks[0][9];
@@ -68,15 +74,14 @@ function displayResults(params: DisplayResultsParams): boolean[] | void {
     canvasHandCtx.fill();
 
     // Check if hand overlaps elements
-    let overlaps: boolean[] = [];
-
     const handX = hand.x * canvasHandRef.current.width;
     const handY = hand.y * canvasHandRef.current.height + 50;
 
     if (elements) {
-      for (let element of elements) {
+      for (let i = 0; i < elements.length; i++) {
+        const element = elements[i];
         if (!element.current) {
-          overlaps.push(false);
+          overlaps[i] = false;
           continue;
         }
         const elementRect = element.current.getBoundingClientRect();
@@ -86,50 +91,15 @@ function displayResults(params: DisplayResultsParams): boolean[] | void {
           handY >= elementRect.y - 20 &&
           handY <= elementRect.y + elementRect.height + 20 // Overlaps Y axis
         ) {
-          overlaps.push(true);
+          overlaps[i] = true;
         } else {
-          overlaps.push(false);
+          overlaps[i] = false;
         }
       }
-
-      return overlaps;
     }
-
-    // if (
-    //   handX >= coords.x - 20 &&
-    //   handX <= coords.x + coords.width &&
-    //   handY >= coords.y - 20 &&
-    //   handY <= coords.y + coords.height + 20
-    // ) {
-    //   countersec++;
-    //   if (!stopup) {
-    //     setHands(`${countersec}`);
-    //     stopdown = false;
-    //   }
-    //   if (countersec >= 30) {
-    //     setHands("👍");
-    //     countersec = 0;
-    //     stopup = true;
-    //   }
-    // }
-    // if (
-    //   handX >= coords2.x - 20 &&
-    //   handX <= coords2.x + coords2.width &&
-    //   handY >= coords2.y - 20 &&
-    //   handY <= coords2.y + coords2.height + 20
-    // ) {
-    //   countersec++;
-    //   if (!stopdown) {
-    //     setHands(`${countersec}`);
-    //     stopup = false;
-    //   }
-    //   if (countersec >= 30) {
-    //     setHands("👎");
-    //     countersec = 0;
-    //     stopdown = true;
-    //   }
-    // }
   }
+
+  return overlaps;
 }
 
 export { displayResults };
