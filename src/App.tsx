@@ -69,7 +69,7 @@ function App() {
     let videoCheckInterval: ReturnType<typeof setInterval> | null = null;
     let isHandsInitialized = false;
     let retryCount = 0;
-    const MAX_RETRIES = 50; // Max retries over ~10 seconds (50 * 200ms)
+    const MAX_RETRIES = 100; // Max retries over ~20 seconds (100 * 200ms)
 
     const initializeHands = async () => {
       try {
@@ -82,9 +82,34 @@ function App() {
       }
     };
 
+    const isVideoReady = (videoElement: HTMLVideoElement): boolean => {
+      // Check if video element exists and has proper dimensions
+      if (!videoElement) return false;
+      
+      // HAVE_FUTURE_DATA (2) means at least two frames are available
+      const hasFrames = videoElement.readyState >= 2;
+      const hasValidDimensions = videoElement.videoWidth > 0 && videoElement.videoHeight > 0;
+      const isPlaying = !videoElement.paused && !videoElement.ended;
+      
+      return hasFrames && hasValidDimensions && isPlaying;
+    };
+
     const startHandTracking = async () => {
-      const image = webcamRef.current?.video;
-      if (!image || image.readyState < 2) {
+      // Access the video element from react-webcam
+      const videoElement = webcamRef.current?.video as HTMLVideoElement;
+      
+      if (!videoElement) {
+        console.debug("Video element not found");
+        return false;
+      }
+
+      if (!isVideoReady(videoElement)) {
+        console.debug("Video not ready", {
+          readyState: videoElement.readyState,
+          videoWidth: videoElement.videoWidth,
+          videoHeight: videoElement.videoHeight,
+          paused: videoElement.paused,
+        });
         return false;
       }
 
@@ -95,16 +120,24 @@ function App() {
         }
       }
 
-      mediapipeCamera = new Cam.Camera(image, {
+      if (mediapipeCamera) {
+        // Already started, don't create a new one
+        return true;
+      }
+
+      mediapipeCamera = new Cam.Camera(videoElement, {
         onFrame: async () => {
           try {
-            await hands.send({ image });
+            if (isVideoReady(videoElement)) {
+              await hands.send({ image: videoElement });
+            }
           } catch (error) {
             console.error("Error sending frame to Hands:", error);
+            // Don't retry on error, just skip this frame
           }
         },
-        width: image.videoWidth || image.width,
-        height: image.videoHeight || image.height,
+        width: videoElement.videoWidth,
+        height: videoElement.videoHeight,
       });
 
       mediapipeCamera.start();
@@ -146,7 +179,15 @@ function App() {
   }, [camStatus]);
   return (
     <>
-      <Webcam ref={webcamRef} hidden />
+      <Webcam
+        ref={webcamRef}
+        hidden
+        mirrored={true}
+        videoConstraints={{
+          width: { min: 480, ideal: 640, max: 1280 },
+          height: { min: 360, ideal: 480, max: 960 },
+        }}
+      />
       {!camStatus && (number < -50 || number > 50) && (
         <button className="controlCam" ref={camButtonRef}>
           Show 📷
