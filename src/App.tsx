@@ -89,9 +89,8 @@ function App() {
       // HAVE_FUTURE_DATA (2) means at least two frames are available
       const hasFrames = videoElement.readyState >= 2;
       const hasValidDimensions = videoElement.videoWidth > 0 && videoElement.videoHeight > 0;
-      const isPlaying = !videoElement.paused && !videoElement.ended;
       
-      return hasFrames && hasValidDimensions && isPlaying;
+      return hasFrames && hasValidDimensions;
     };
 
     const startHandTracking = async () => {
